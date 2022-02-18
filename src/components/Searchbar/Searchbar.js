@@ -6,35 +6,37 @@ import { toast } from 'react-toastify';
 
 class Searchbar extends Component {
   state = {
-    imageName: '',
+    searchImage: '',
   };
 
   handleNameChange = event => {
-    this.setState({ imageName: event.currentTarget.value.toLowerCase() });
+    this.setState({ searchImage: event.currentTarget.value.toLowerCase() });
   };
 
   handleSubmit = event => {
     event.preventDefault();
-    const { imageName } = this.state;
+    const { searchImage } = this.state;
 
-    if (imageName.trim() === '') {
+    if (searchImage.trim() === '') {
       toast.error('💩 Oops... Try again!', { theme: 'colored' });
       return;
     }
 
-    this.props.onSubmit(imageName);
-    this.setState({ imageName: '' });
+    this.props.onSubmit(searchImage);
+    this.setState({ searchImage: '' });
 
     this.reset();
   };
 
   reset = () => {
     this.setState({
-      imageName: '',
+      searchImage: '',
     });
   };
 
   render() {
+    const { searchImage } = this.state;
+
     return (
       <Header>
         <Form onSubmit={this.handleSubmit}>
@@ -45,8 +47,8 @@ class Searchbar extends Component {
 
           <Input
             type="text"
-            name="imageName"
-            value={this.state.imageName}
+            name="searchImage"
+            value={searchImage}
             onChange={this.handleNameChange}
             autocomplete="off"
             autoFocus
@@ -61,7 +63,7 @@ class Searchbar extends Component {
 Searchbar.propTypes = {
   state: PropTypes.arrayOf(
     PropTypes.shape({
-      imageName: PropTypes.string.isRequired,
+      searchImage: PropTypes.string.isRequired,
     })
   ),
 };
