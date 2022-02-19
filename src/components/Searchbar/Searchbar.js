@@ -18,7 +18,7 @@ class Searchbar extends Component {
     const { searchImage } = this.state;
 
     if (searchImage.trim() === '') {
-      toast.error('💩 Oops... Try again!', { theme: 'colored' });
+      toast.warning('Oops... Try again!', { theme: 'colored' });
       return;
     }
 

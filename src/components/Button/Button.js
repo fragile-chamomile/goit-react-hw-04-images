@@ -1,8 +1,12 @@
 import PropTypes from 'prop-types';
 import { ButtonLoadMore } from './Button.styled';
 
-function Button() {
-  return <ButtonLoadMore type="button">Load more</ButtonLoadMore>;
+function Button({ handleClickBtn }) {
+  return (
+    <ButtonLoadMore type="button" onClick={handleClickBtn}>
+      Load more
+    </ButtonLoadMore>
+  );
 }
 
 Button.propTypes = {

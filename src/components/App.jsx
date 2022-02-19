@@ -1,16 +1,17 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-// import {  } from './App.styled';
-import { ToastContainer } from 'react-toastify';
+import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import TailSpin from '../components/Loader/Loader';
+import { ThreeDots } from 'react-loader-spinner';
 import 'react-loader-spinner/dist/loader/css/react-spinner-loader.css';
 
+// Коомпоненты
 import API from '../services/images-api';
-import Searchbar from '../components/Searchbar/Searchbar';
-import ImageGallery from '../components/ImageGallery/ImageGallery';
-// import Modal from '../components/Modal/Modal';
-import Button from '../components/Button/Button';
+import Container from './Container/Container.js';
+import Searchbar from './Searchbar/Searchbar';
+import ImageGallery from './ImageGallery/ImageGallery';
+import Modal from './Modal/Modal';
+import Button from './Button/Button';
 
 class App extends Component {
   state = {
@@ -19,6 +20,7 @@ class App extends Component {
     page: 1,
     error: null,
     status: 'idle',
+    showModal: false,
   };
 
   // Добавление галереи картинок с api
@@ -57,8 +59,9 @@ class App extends Component {
               };
             });
           } else {
-            alert(`On request ${nextImage} - nothing find.`);
+            toast.warning('Oops... Try again!', { theme: 'colored' });
             this.setState({ status: 'idle' });
+            return;
           }
         })
         .catch(error => this.setState({ error, status: 'rejected' }));
@@ -67,7 +70,9 @@ class App extends Component {
 
   // Поиск картинки
   handleSearchFormSubmit = searchImageNew => {
-    if (searchImageNew !== this.state.searchImage) {
+    const { searchImage } = this.state;
+
+    if (searchImageNew !== searchImage) {
       this.setState({
         searchImage: searchImageNew,
         page: 1,
@@ -76,35 +81,71 @@ class App extends Component {
     }
   };
 
+  // Методы модального окна
+  toggleModal = () => {
+    this.setState(({ showModal }) => ({
+      showModal: !showModal,
+    }));
+  };
+
+  handleClickImg = event => {
+    this.setState({
+      showModal: true,
+      modalImg: event.target.dataset.src,
+      modalAlt: event.target.alt,
+    });
+  };
+
+  //Кнопка Load More
+  handleClickBtn = () => {
+    this.setState(({ page }) => {
+      return { page: page + 1, status: 'pending' };
+    });
+  };
+
   render() {
-    const { gallery, error, status } = this.state;
+    const { gallery, error, status, showModal, modalImg, modalAlt } =
+      this.state;
 
     if (status === 'idle') {
-      <Searchbar onSubmit={this.handleSearchFormSubmit} />;
-      <ToastContainer autoClose={2000} />;
+      return (
+        <>
+          <Searchbar onSubmit={this.handleSearchFormSubmit} />
+          <ToastContainer autoClose={2000} />
+        </>
+      );
     }
+
     if (status === 'pending') {
-      <>
-        <Searchbar onSubmit={this.handleSearchFormSubmit} />;
-        {gallery.length > 0 && <ImageGallery images={gallery} />}
-        <TailSpin />;
-      </>;
+      return (
+        <Container>
+          <Searchbar onSubmit={this.handleSearchFormSubmit} />
+          {gallery.length > 0 && <ImageGallery images={gallery} />}
+          <div style={{ margin: '50px auto 0', width: '100px' }}>
+            <ThreeDots color="#3f51b5" />
+          </div>
+        </Container>
+      );
     }
+
     if (status === 'rejected') {
       return <div>Error: {error.message}</div>;
     }
+
     if (status === 'resolved') {
       return (
         <>
-          {/* {showModal && (
-          <Modal onClose={this.toggleModal}>
-            <img src={modalImg} alt={modalAlt} />
-          </Modal>
-        )} */}
-          <Searchbar onSubmit={this.handleSearchFormSubmit} />;
-          <ImageGallery images={gallery} />
-          <Button />
-          <ToastContainer autoClose={2000} />
+          {showModal && (
+            <Modal onClose={this.toggleModal}>
+              <img src={modalImg} alt={modalAlt} />
+            </Modal>
+          )}
+          <Searchbar onSubmit={this.handleSearchFormSubmit} />
+          <Container>
+            <ImageGallery onClickImg={this.handleClickImg} images={gallery} />
+            <Button handleClickBtn={this.handleClickBtn} />
+            <ToastContainer autoClose={2000} />
+          </Container>
         </>
       );
     }
@@ -115,9 +156,10 @@ App.propTypes = {
   state: PropTypes.arrayOf(
     PropTypes.shape({
       searchImage: PropTypes.string.isRequired,
-      images: PropTypes.array.isRequired,
+      gallery: PropTypes.array.isRequired,
       page: PropTypes.string.isRequired,
       status: PropTypes.string.isRequired,
+      showModal: PropTypes.bool.isRequired,
     })
   ),
 };
