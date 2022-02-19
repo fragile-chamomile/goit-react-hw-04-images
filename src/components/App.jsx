@@ -61,7 +61,7 @@ class App extends Component {
               };
             });
           } else {
-            toast.warning('Oops... Try again!', { theme: 'colored' });
+            toast.warning('Sorry. Nothing found!', { theme: 'colored' });
             this.setState({ status: 'idle' });
             return;
           }
@@ -112,21 +112,31 @@ class App extends Component {
     if (status === 'idle') {
       return (
         <>
+          {showModal && (
+            <Modal onClose={this.toggleModal}>
+              <img src={modalImg} alt={modalAlt} />
+            </Modal>
+          )}
           <Searchbar onSubmit={this.handleSearchFormSubmit} />
           <ToastContainer autoClose={2000} />
+          <Container>
+            <ImageGallery onClickImg={this.handleClickImg} images={gallery} />
+          </Container>
         </>
       );
     }
 
     if (status === 'pending') {
       return (
-        <Container>
+        <>
           <Searchbar onSubmit={this.handleSearchFormSubmit} />
-          {gallery.length > 0 && <ImageGallery images={gallery} />}
-          <div style={{ margin: '50px auto 0', width: '100px' }}>
-            <ThreeDots color="#3f51b5" />
-          </div>
-        </Container>
+          <Container>
+            {gallery.length > 0 && <ImageGallery images={gallery} />}
+            <div style={{ margin: '50px auto 0', width: '100px' }}>
+              <ThreeDots color="#3f51b5" />
+            </div>
+          </Container>
+        </>
       );
     }
 
@@ -146,7 +156,6 @@ class App extends Component {
           <Container>
             <ImageGallery onClickImg={this.handleClickImg} images={gallery} />
             <Button handleClickBtn={this.handleClickBtn} />
-            <ToastContainer autoClose={2000} />
           </Container>
         </>
       );
@@ -160,6 +169,7 @@ App.propTypes = {
       searchImage: PropTypes.string.isRequired,
       gallery: PropTypes.array.isRequired,
       page: PropTypes.string.isRequired,
+      error: PropTypes.string.isRequired,
       status: PropTypes.string.isRequired,
       showModal: PropTypes.bool.isRequired,
       modalImg: PropTypes.string.isRequired,
