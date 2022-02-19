@@ -21,6 +21,8 @@ class App extends Component {
     error: null,
     status: 'idle',
     showModal: false,
+    modalImg: '',
+    modalAlt: '',
   };
 
   // Добавление галереи картинок с api
@@ -160,6 +162,8 @@ App.propTypes = {
       page: PropTypes.string.isRequired,
       status: PropTypes.string.isRequired,
       showModal: PropTypes.bool.isRequired,
+      modalImg: PropTypes.string.isRequired,
+      modalAlt: PropTypes.string.isRequired,
     })
   ),
 };
