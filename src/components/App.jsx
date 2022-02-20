@@ -155,7 +155,11 @@ class App extends Component {
           <Searchbar onSubmit={this.handleSearchFormSubmit} />
           <Container>
             <ImageGallery onClickImg={this.handleClickImg} images={gallery} />
-            <Button handleClickBtn={this.handleClickBtn} />
+            {gallery.length < 12 ? (
+              !(<Button handleClickBtn={this.handleClickBtn} />)
+            ) : (
+              <Button handleClickBtn={this.handleClickBtn} />
+            )}
           </Container>
         </>
       );
