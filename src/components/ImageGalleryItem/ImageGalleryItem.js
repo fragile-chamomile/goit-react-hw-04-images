@@ -8,6 +8,14 @@ const ImageGalleryItem = ({ webformatURL, largeImageURL, tags, onClick }) => (
   </Item>
 );
 
+ImageGalleryItem.defaultProps = {
+  image:
+    'https://www.salonlfc.com/wp-content/uploads/2018/01/image-not-found-scaled.png',
+  tags: '',
+  largeImageURL:
+    'https://www.salonlfc.com/wp-content/uploads/2018/01/image-not-found-scaled.png',
+};
+
 ImageGalleryItem.propTypes = {
   webformatURL: PropTypes.string.isRequired,
   largeImageURL: PropTypes.string.isRequired,
