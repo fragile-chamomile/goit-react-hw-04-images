@@ -6,7 +6,7 @@ import { ThreeDots } from 'react-loader-spinner';
 import 'react-loader-spinner/dist/loader/css/react-spinner-loader.css';
 
 // Коомпоненты
-import API from '../services/images-api';
+import fetchImages from '../services/images-api';
 import Container from './Container/Container.js';
 import Searchbar from './Searchbar/Searchbar';
 import ImageGallery from './ImageGallery/ImageGallery';
@@ -23,6 +23,7 @@ class App extends Component {
     showModal: false,
     modalImg: '',
     modalAlt: '',
+    perPage: 12,
   };
 
   // Добавление галереи картинок с api
@@ -45,7 +46,7 @@ class App extends Component {
     }
 
     if (prevImage !== nextImage || prevPage !== nextPage) {
-      API.fetchImages(nextImage, nextPage)
+      fetchImages(nextImage, nextPage, this.state.perPage)
         .then(({ hits }) => {
           const images = hits.map(
             ({ id, webformatURL, largeImageURL, tags }) => {
@@ -106,7 +107,7 @@ class App extends Component {
   };
 
   render() {
-    const { gallery, error, status, showModal, modalImg, modalAlt } =
+    const { gallery, error, status, showModal, modalImg, modalAlt, perPage } =
       this.state;
 
     if (status === 'idle') {
@@ -155,7 +156,7 @@ class App extends Component {
           <Searchbar onSubmit={this.handleSearchFormSubmit} />
           <Container>
             <ImageGallery onClickImg={this.handleClickImg} images={gallery} />
-            {gallery.length < 12 ? (
+            {gallery.length < perPage ? (
               !(<Button handleClickBtn={this.handleClickBtn} />)
             ) : (
               <Button handleClickBtn={this.handleClickBtn} />
