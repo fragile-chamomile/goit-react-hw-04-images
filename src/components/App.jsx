@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-// import PropTypes from 'prop-types';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { ThreeDots } from 'react-loader-spinner';
@@ -32,36 +31,31 @@ const App = () => {
 
     setStatus('pending');
 
-    setTimeout(() => {
-      fetchImages(searchImage, page, perPage)
-        .then(({ hits }) => {
-          const images = hits.map(
-            ({ id, webformatURL, largeImageURL, tags }) => {
-              return { id, webformatURL, largeImageURL, tags };
-            }
-          );
-
-          if (images.length === 0) {
-            toast.warning('Sorry. Nothing found!', { theme: 'colored' });
-            setStatus('idle');
-            return;
-          }
-
-          if (page > 1) {
-            console.log(images);
-            setGallery([...gallery, ...images]);
-            setStatus('resolved');
-            return;
-          }
-
-          setGallery([...images]);
-          setStatus('resolved');
-        })
-        .catch(error => {
-          setError(error);
-          setStatus('rejected');
+    fetchImages(searchImage, page, perPage)
+      .then(({ hits }) => {
+        const images = hits.map(({ id, webformatURL, largeImageURL, tags }) => {
+          return { id, webformatURL, largeImageURL, tags };
         });
-    }, 500);
+
+        if (images.length === 0) {
+          toast.warning('Sorry. Nothing found!', { theme: 'colored' });
+          setStatus('idle');
+          return;
+        }
+
+        if (page > 1) {
+          setGallery(prevImages => [...prevImages, ...images]);
+          setStatus('resolved');
+          return;
+        }
+
+        setGallery([...images]);
+        setStatus('resolved');
+      })
+      .catch(error => {
+        setError(error);
+        setStatus('rejected');
+      });
   }, [searchImage, page, perPage]);
 
   // Поиск картинки
