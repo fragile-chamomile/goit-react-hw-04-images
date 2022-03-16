@@ -1,5 +1,5 @@
-import React, { Component } from 'react';
-import PropTypes from 'prop-types';
+import { useState, useEffect } from 'react';
+// import PropTypes from 'prop-types';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { ThreeDots } from 'react-loader-spinner';
@@ -13,40 +13,27 @@ import ImageGallery from './ImageGallery/ImageGallery';
 import Modal from './Modal/Modal';
 import Button from './Button/Button';
 
-class App extends Component {
-  state = {
-    searchImage: '',
-    gallery: [],
-    page: 1,
-    error: null,
-    status: 'idle',
-    showModal: false,
-    modalImg: '',
-    modalAlt: '',
-    perPage: 12,
-  };
+const App = () => {
+  const [searchImage, setSearchImage] = useState('');
+  const [gallery, setGallery] = useState([]);
+  const [page, setPage] = useState(1);
+  const [error, setError] = useState(null);
+  const [status, setStatus] = useState('idle');
+  const [showModal, setShowModal] = useState(false);
+  const [modalImg, setModalImg] = useState('');
+  const [modalAlt, setModalAlt] = useState('');
+  const [perPage, setPerPage] = useState(12);
 
   // Добавление галереи картинок с api
-  componentDidUpdate(prevProps, prevState) {
-    const prevImage = prevState.searchImage;
-    const nextImage = this.state.searchImage;
-
-    const prevPage = prevState.page;
-    const nextPage = this.state.page;
-
-    if (nextPage > 1) {
-      window.scrollTo({
-        top: document.documentElement.scrollHeight,
-        behavior: 'smooth',
-      });
+  useEffect(() => {
+    if (!searchImage) {
+      return;
     }
 
-    if (prevImage !== nextImage) {
-      this.setState({ gallery: [], status: 'pending' });
-    }
+    setStatus('pending');
 
-    if (prevImage !== nextImage || prevPage !== nextPage) {
-      fetchImages(nextImage, nextPage, this.state.perPage)
+    setTimeout(() => {
+      fetchImages(searchImage, page, perPage)
         .then(({ hits }) => {
           const images = hits.map(
             ({ id, webformatURL, largeImageURL, tags }) => {
@@ -54,133 +41,109 @@ class App extends Component {
             }
           );
 
-          if (images.length > 0) {
-            this.setState(prevState => {
-              return {
-                gallery: [...prevState.gallery, ...images],
-                status: 'resolved',
-              };
-            });
-          } else {
+          if (images.length === 0) {
             toast.warning('Sorry. Nothing found!', { theme: 'colored' });
-            this.setState({ status: 'idle' });
+            setStatus('idle');
             return;
           }
+
+          if (page > 1) {
+            console.log(images);
+            setGallery([...gallery, ...images]);
+            setStatus('resolved');
+            return;
+          }
+
+          setGallery([...images]);
+          setStatus('resolved');
         })
-        .catch(error => this.setState({ error, status: 'rejected' }));
-    }
-  }
+        .catch(error => {
+          setError(error);
+          setStatus('rejected');
+        });
+    }, 500);
+  }, [searchImage, page, perPage]);
 
   // Поиск картинки
-  handleSearchFormSubmit = searchImageNew => {
-    const { searchImage } = this.state;
-
-    if (searchImageNew !== searchImage) {
-      this.setState({
-        searchImage: searchImageNew,
-        page: 1,
-        status: 'pending',
-      });
-    }
+  const handleSearchFormSubmit = value => {
+    setSearchImage(value);
+    setPage(1);
+    setPerPage(12);
+    setStatus('pending');
   };
 
   // Методы модального окна
-  toggleModal = () => {
-    this.setState(({ showModal }) => ({
-      showModal: !showModal,
-    }));
+  const toggleModal = () => {
+    setShowModal(!showModal);
   };
 
-  handleClickImg = event => {
-    this.setState({
-      showModal: true,
-      modalImg: event.target.dataset.src,
-      modalAlt: event.target.alt,
-    });
+  const handleClickImg = event => {
+    setShowModal(true);
+    setModalImg(event.target.dataset.src);
+    setModalAlt(event.target.alt);
   };
 
   //Кнопка Load More
-  handleClickBtn = () => {
-    this.setState(({ page }) => {
-      return { page: page + 1, status: 'pending' };
-    });
+  const handleClickBtn = () => {
+    setPage(page + 1);
+    setStatus('pending');
   };
 
-  render() {
-    const { gallery, error, status, showModal, modalImg, modalAlt, perPage } =
-      this.state;
-
-    if (status === 'idle') {
-      return (
-        <>
-          {showModal && (
-            <Modal onClose={this.toggleModal}>
-              <img src={modalImg} alt={modalAlt} />
-            </Modal>
-          )}
-          <Searchbar onSubmit={this.handleSearchFormSubmit} />
-          <ToastContainer autoClose={2000} />
-          <Container>
-            <ImageGallery onClickImg={this.handleClickImg} images={gallery} />
-          </Container>
-        </>
-      );
-    }
-
-    if (status === 'pending') {
-      return (
-        <>
-          <Searchbar onSubmit={this.handleSearchFormSubmit} />
-          <Container>
-            {gallery.length > 0 && <ImageGallery images={gallery} />}
-            <div style={{ margin: '50px auto 0', width: '100px' }}>
-              <ThreeDots color="#3f51b5" />
-            </div>
-          </Container>
-        </>
-      );
-    }
-
-    if (status === 'rejected') {
-      return <div>Error: {error.message}</div>;
-    }
-
-    if (status === 'resolved') {
-      return (
-        <>
-          {showModal && (
-            <Modal onClose={this.toggleModal}>
-              <img src={modalImg} alt={modalAlt} />
-            </Modal>
-          )}
-          <Searchbar onSubmit={this.handleSearchFormSubmit} />
-          <Container>
-            <ImageGallery onClickImg={this.handleClickImg} images={gallery} />
-            {gallery.length < perPage ? (
-              !(<Button handleClickBtn={this.handleClickBtn} />)
-            ) : (
-              <Button handleClickBtn={this.handleClickBtn} />
-            )}
-          </Container>
-        </>
-      );
-    }
+  if (status === 'idle') {
+    return (
+      <>
+        {showModal && (
+          <Modal onClose={toggleModal}>
+            <img src={modalImg} alt={modalAlt} />
+          </Modal>
+        )}
+        <Searchbar onSubmit={handleSearchFormSubmit} />
+        <ToastContainer autoClose={2000} />
+        <Container>
+          <ImageGallery onClickImg={handleClickImg} images={gallery} />
+        </Container>
+      </>
+    );
   }
-}
 
-App.propTypes = {
-  state: PropTypes.arrayOf(
-    PropTypes.shape({
-      searchImage: PropTypes.string.isRequired,
-      gallery: PropTypes.array.isRequired,
-      page: PropTypes.string.isRequired,
-      error: PropTypes.string.isRequired,
-      status: PropTypes.string.isRequired,
-      showModal: PropTypes.bool.isRequired,
-      modalImg: PropTypes.string.isRequired,
-      modalAlt: PropTypes.string.isRequired,
-    })
-  ),
+  if (status === 'pending') {
+    return (
+      <>
+        <Searchbar onSubmit={handleSearchFormSubmit} />
+        <Container>
+          {page > 1 && <ImageGallery images={gallery} />}
+          <div style={{ margin: '50px auto 0', width: '100px' }}>
+            <ThreeDots color="#3f51b5" />
+          </div>
+        </Container>
+      </>
+    );
+  }
+
+  if (status === 'rejected') {
+    return <div>Error: {error.message}</div>;
+  }
+
+  if (status === 'resolved') {
+    return (
+      <>
+        {showModal && (
+          <Modal onClose={toggleModal}>
+            <img src={modalImg} alt={modalAlt} />
+          </Modal>
+        )}
+        <Searchbar onSubmit={handleSearchFormSubmit} />
+        <Container>
+          <ImageGallery onClickImg={handleClickImg} images={gallery} />
+          {gallery.length < perPage ? (
+            !(<Button handleClickBtn={handleClickBtn} />)
+          ) : (
+            <Button handleClickBtn={handleClickBtn} />
+          )}
+        </Container>
+      </>
+    );
+  }
 };
 
 export default App;
